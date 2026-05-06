@@ -1,3 +1,5 @@
+let userInteracted = false;
+
 // Controlador principal da aplicação
 class App {
   constructor() {
@@ -15,11 +17,10 @@ class App {
     // Configura eventos
     this.setupEventListeners();
 
-    // Mensagem inicial
+    // Mensagem inicial sem voz automática
     setTimeout(() => {
       const initialMessage = 'Olá! Sou seu assistente de moda. Como posso ajudar você hoje?';
       chatbotController.addMessage('bot', initialMessage);
-      voiceController.speak(initialMessage);
     }, 500);
   }
 
@@ -88,6 +89,77 @@ class App {
         this.clearChat();
       });
     }
+
+    // Botão flutuante abrir/fechar chat
+    const chatToggleButton = document.getElementById('chatToggleButton');
+    if (chatToggleButton) {
+      chatToggleButton.addEventListener('click', () => {
+        this.toggleChatWidget();
+      });
+    }
+
+    // Botão 'Abrir assistente' na página
+    const openChatButton = document.getElementById('openChatButton');
+    if (openChatButton) {
+      openChatButton.addEventListener('click', () => {
+        this.openChatWidget();
+      });
+    }
+
+    // Botão de fechar chat
+    const closeChatButton = document.getElementById('closeChatButton');
+    if (closeChatButton) {
+      closeChatButton.addEventListener('click', () => {
+        this.closeChatWidget();
+      });
+    }
+
+    const chatOverlay = document.getElementById('chatOverlay');
+    if (chatOverlay) {
+      chatOverlay.addEventListener('click', () => {
+        this.closeChatWidget();
+      });
+    }
+  }
+
+  // Alterna o widget de chat flutuante
+  toggleChatWidget() {
+    const chatWidget = document.getElementById('chatWidget');
+    if (!chatWidget) return;
+
+    const isActive = chatWidget.classList.contains('active');
+    if (isActive) {
+      this.closeChatWidget();
+    } else {
+      this.openChatWidget();
+    }
+  }
+
+  openChatWidget() {
+    const chatWidget = document.getElementById('chatWidget');
+    const chatOverlay = document.getElementById('chatOverlay');
+    const messageInput = document.getElementById('messageInput');
+    if (!chatWidget || !chatOverlay) return;
+
+    userInteracted = true;
+    chatWidget.classList.add('active');
+    chatOverlay.classList.add('active');
+    chatWidget.setAttribute('aria-hidden', 'false');
+    chatOverlay.setAttribute('aria-hidden', 'false');
+    if (messageInput) {
+      messageInput.focus();
+    }
+  }
+
+  closeChatWidget() {
+    const chatWidget = document.getElementById('chatWidget');
+    const chatOverlay = document.getElementById('chatOverlay');
+    if (!chatWidget || !chatOverlay) return;
+
+    chatWidget.classList.remove('active');
+    chatOverlay.classList.remove('active');
+    chatWidget.setAttribute('aria-hidden', 'true');
+    chatOverlay.setAttribute('aria-hidden', 'true');
   }
 
   // Envia mensagem do usuário
@@ -97,6 +169,7 @@ class App {
 
     const text = messageInput.value.trim();
     if (text) {
+      userInteracted = true;
       chatbotController.processTextInput(text);
       messageInput.value = '';
     }

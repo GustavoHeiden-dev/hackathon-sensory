@@ -84,6 +84,11 @@ class VoiceController {
       return;
     }
 
+    if (typeof userInteracted === 'undefined' || !userInteracted) {
+      if (callback) callback();
+      return;
+    }
+
     // Cancela qualquer fala anterior para evitar sobreposição
     this.synth.cancel();
     this.isSpeaking = false;
