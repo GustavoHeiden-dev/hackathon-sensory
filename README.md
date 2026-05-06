@@ -1,26 +1,53 @@
-Adicione funcionalidade de resposta por voz ao chatbot existente.
+Adicione mais produtos ao sistema e implemente exibição de resultados com imagem no chatbot.
 
 Tarefas:
 
-1. Criar uma função speak(text) separada (em voice.js ou arquivo equivalente):
-   - Usar SpeechSynthesisUtterance
-   - Definir idioma como "pt-BR"
-   - Configurar rate e pitch básicos
-   - Antes de falar, chamar speechSynthesis.cancel() para evitar sobreposição
+1. Atualizar o arquivo de produtos (products.js):
+   - Criar um array com pelo menos 9 produtos divididos em:
+     • 3 calças
+     • 3 camisas
+     • 3 casacos
+   - Cada produto deve ter:
+     id, name, type, color, material, style, image
+   - Usar cores variadas (azul, preto, branco, bege, etc)
+   - O campo image deve ser um caminho local (ex: "assets/calca-azul.jpg")
 
-2. Integrar no fluxo do chatbot:
-   - Sempre que o bot enviar uma mensagem (resposta), chamar speak(message)
-   - Não alterar a lógica atual, apenas complementar
+2. Garantir que o sistema de filtro continue funcionando:
+   - O filtro deve considerar:
+     type, color, material e style
+   - Não quebrar a lógica existente
 
-3. Melhorar qualidade da voz:
-   - Tentar selecionar uma voz disponível em português (pt-BR) usando speechSynthesis.getVoices()
+3. Criar função para exibir produtos no chat:
+   - Criar uma função chamada showProducts(products)
+   - Para cada produto:
+     • mostrar nome
+     • mostrar imagem usando <img>
+   - Inserir no chat como mensagem do bot
 
-4. Garantir funcionamento:
-   - A fala deve acontecer apenas após interação do usuário
-   - Evitar múltiplas falas ao mesmo tempo
+4. Integrar no fluxo do chatbot:
+   - Após coletar informações suficientes do usuário:
+     • filtrar os produtos
+     • chamar showProducts(results)
+     • responder com mensagem tipo:
+       "Encontrei algumas opções para você"
 
-5. Manter código organizado:
-   - Não misturar lógica de voz com lógica do chatbot
-   - Importar a função corretamente
+5. Melhorar a experiência:
+   - Se não encontrar produtos → mostrar mensagem amigável
+   - Garantir que a resposta também seja falada (se já existir função speak, usar ela)
 
-Faça a implementação de forma simples e funcional (MVP).
+6. Organização:
+   - Não misturar lógica de UI com lógica de filtro
+   - Manter código simples e legível
+
+7. Considerar estrutura de arquivos:
+   - As imagens devem estar em uma pasta "assets/"
+   - Garantir que os caminhos das imagens funcionem corretamente no HTML
+
+Importante:
+- Não usar backend
+- Não usar frameworks
+- Não remover funcionalidades existentes
+- Apenas expandir o sistema atual
+
+Objetivo:
+Permitir que o chatbot mostre produtos com imagem após entender o que o usuário quer.

@@ -147,7 +147,13 @@ class ChatbotUI {
 
     const textElement = document.createElement('div');
     textElement.className = 'message-text';
-    textElement.textContent = message.text;
+
+    // Verifica se é HTML ou texto simples
+    if (message.data && message.data.isHtml) {
+      textElement.innerHTML = message.text;
+    } else {
+      textElement.textContent = message.text;
+    }
 
     messageElement.appendChild(textElement);
 

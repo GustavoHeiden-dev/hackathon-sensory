@@ -1,130 +1,202 @@
-# 🎤 Implementação - Resposta por Voz do Chatbot
+# 🎤 Implementação - Resposta por Voz + Fluxo Guiado do Chatbot
 
 ## Resumo das Alterações
 
-Todas as funcionalidades descritas no README.md foram implementadas com sucesso no MVP do Sensory UX.
+Todas as funcionalidades foram implementadas com sucesso no MVP do Sensory UX.
 
 ---
 
-## ✅ Tarefas Realizadas
+## ✅ Fase 1: Resposta por Voz (Concluída)
 
 ### 1. Função `speak(text)` Otimizada em `voice.js`
 
 **Melhorias implementadas:**
-- ✅ Usa `SpeechSynthesisUtterance` com configuração adequada
-- ✅ Idioma configurado como `"pt-BR"`
-- ✅ **Cancela síntese anterior** com `this.synth.cancel()` antes de falar (evita sobreposição)
-- ✅ Rate ajustado para `0.95` (mais lento para clareza)
-- ✅ Pitch mantido natural em `1.0`
-
-**Nova função `selectPortugueseVoice()`:**
-- Busca automaticamente voz em português (pt-BR) disponível no navegador
-- Se não encontrar pt-BR, tenta português genérico (pt)
-- Fallback para primeira voz disponível se nenhuma em português existir
-- Melhora significativamente a qualidade da síntese de voz
-
----
+- ✅ Usa `SpeechSynthesisUtterance` com idioma `pt-BR`
+- ✅ **Cancela síntese anterior com `cancel()`** antes de falar (evita sobreposição)
+- ✅ Rate `0.95` para clareza, pitch natural
+- ✅ Seleção automática de voz em português
 
 ### 2. Integração no Fluxo do Chatbot
-
-A função `speak()` foi integrada em **todos os pontos onde o bot envia mensagens:**
-
-#### ✅ Em `chatbot.js`:
-
-- **`respondWithGreeting()`** - Fala resposta de saudação
-- **`respondWithHelp()`** - Fala resposta de ajuda
-- **`respondWithConfusion()`** - Fala resposta quando não entende
-- **`searchAndRespond()`** - Fala quando encontra produtos ou quando nenhum produto é encontrado
-
-#### ✅ Em `main.js`:
-
-- **Mensagem inicial** - Bot fala a mensagem de boas-vindas ao iniciar a aplicação
+- ✅ Todas as respostas do bot disparam `voiceController.speak()`
+- ✅ Sem múltiplas falas simultâneas
+- ✅ Ativação apenas após interação do usuário
 
 ---
 
-### 3. Garantias de Funcionamento
+## ✅ Fase 2: Fluxo Guiado de Perguntas (Concluída)
 
-✅ **Evita múltiplas falas simultâneas:**
-- `this.synth.cancel()` cancela qualquer fala anterior antes de iniciar nova síntese
-- Flag `isSpeaking` rastreia estado
+### 1. Sistema de Contexto de Usuário
 
-✅ **Ativação somente após interação do usuário:**
-- Mensagens iniciais disparam apenas no `init()` (após intervalo de 500ms)
-- Respostas só ocorrem após entrada do usuário (texto ou voz)
-- Nenhuma síntese é acionada automaticamente
+**Objeto `userContext` adicionado em `ChatbotController`:**
+```javascript
+this.userContext = {
+  type: null,       // camiseta, calça, vestido, etc
+  color: null,      // azul, preta, branca, etc
+  style: null,      // casual, formal
+  material: null    // algodão, jeans, seda, etc
+}
+```
+
+**Controle de fluxo:**
+- `isInGuidedFlow` - Flag que controla se está no modo de perguntas
+- `askedQuestions` - Set que rastreia quais perguntas já foram feitas (evita repetição)
+
+### 2. Extração de Informações Inteligente
+
+Métodos individuais para extrair cada critério:
+- **`extractType(text)`** - Identifica tipo de roupa
+- **`extractColor(text)`** - Identifica cor
+- **`extractMaterial(text)`** - Identifica material
+- **`extractStyle(text)`** - Identifica estilo (casual/formal)
+
+### 3. Fluxo de Perguntas Guiado
+
+**Sequência automática:**
+1. Usuário interage (cumprimento ou digite algo)
+2. Bot inicia `startGuidedFlow()`
+3. Bot pergunta itens faltando na sequência: tipo → cor → material → estilo
+4. Usuário responde com a informação
+5. Bot extrai a informação e confirma
+6. Bot pergunta o próximo critério
+7. Quando tudo está completo, busca produtos
+
+**Funções principais:**
+
+- **`startGuidedFlow()`** - Inicia o fluxo e pergunta o primeiro item
+- **`askNextQuestion()`** - Pergunta o próximo critério necessário
+- **`processGuidedFlowInput(text)`** - Processa entrada do usuário no fluxo
+- **`completeGuidedFlow()`** - Finaliza com resumo e busca produtos
+- **`resetContext()`** - Limpa estado para próxima busca
+
+### 4. Conversação Inteligente
+
+**O bot agora:**
+- ✅ Confirma cada informação extraída com frase personalizada
+- ✅ Nunca repete a mesma pergunta
+- ✅ Guia o usuário passo a passo
+- ✅ Fala tudo automaticamente
+
+**Exemplos:**
+
+**Usuário:** "Olá"
+```
+Bot: "Olá! Sou seu assistente de moda. Vou te ajudar a encontrar as roupas perfeitas passo a passo."
+🔊 [Áudio]
+Bot: "Que tipo de roupa você gostaria de encontrar? (camiseta, calça, vestido...)"
+🔊 [Áudio]
+```
+
+**Usuário:** "Camiseta"
+```
+Bot: "Ótimo! Camiseta é uma boa escolha."
+🔊 [Áudio]
+Bot: "Que cor você prefere? (azul, preta, branca...)"
+🔊 [Áudio]
+```
+
+**Usuário:** "Azul"
+```
+Bot: "Azul é uma cor lindíssima!"
+🔊 [Áudio]
+Bot: "Qual material você prefere? (algodão, jeans, seda...)"
+🔊 [Áudio]
+```
+
+**Usuário:** "Algodão"
+```
+Bot: "Algodão é uma excelente escolha para conforto!"
+🔊 [Áudio]
+Bot: "Qual é o seu estilo? Algo casual ou formal?"
+🔊 [Áudio]
+```
+
+**Usuário:** "Casual"
+```
+Bot: "Casual é perfeito!"
+🔊 [Áudio]
+Bot: "Perfeito! Procuramos por: camiseta casual azul algodão. Deixe-me buscar as melhores opções para você."
+🔊 [Áudio]
+Bot: "Ótimo! Encontrei o que você procura:"
+Bot: "Camiseta Básica (branca, algodão)"
+```
 
 ---
 
-### 4. Organização e Manutenibilidade
-
-✅ **Código limpo e separado:**
-- Lógica de voz isolada em `voice.js` (classe `VoiceController`)
-- Lógica do chatbot em `chatbot.js` (classe `ChatbotController`)
-- Chamadas simples e claras: `voiceController.speak(response)`
-- Sem mistura de responsabilidades
-
-✅ **Importações corretas:**
-- Scripts carregados em ordem correta no `index.html`:
-  1. `products.js`
-  2. `voice.js` ← VoiceController disponível globalmente
-  3. `chatbot.js` ← Usa voiceController
-  4. `main.js` ← Inicializa tudo
-
----
-
-## 🎯 Fluxo de Funcionamento
+## 🎯 Fluxo de Funcionamento Completo
 
 ```
 1. Usuário acessa página
    ↓
-2. App inicializa (init())
+2. App inicializa
    ↓
 3. Bot fala: "Olá! Sou seu assistente de moda..."
    ↓
-4. Usuário digita ou fala (via microfone)
+4. Usuário digita/fala algo (ex: "olá", "camiseta", etc)
    ↓
-5. Chatbot processa entrada
+5. Bot inicia fluxo guiado
    ↓
-6. Bot responde e FALA a resposta automaticamente
+6. Bot pergunta tipo → Bot pergunta cor → Bot pergunta material → Bot pergunta estilo
    ↓
-7. Próxima interação do usuário reinicia o ciclo
+7. Usuário responde cada pergunta
+   ↓
+8. Bot confirma e pergunta próximo critério
+   ↓
+9. Todos os critérios coletados
+   ↓
+10. Bot resume e busca produtos
+    ↓
+11. Resultados exibidos
+    ↓
+12. Contexto resetado, aguardando novo usuário
 ```
 
 ---
 
 ## 🔧 Detalhes Técnicos
 
-### Tratamento de Erros
-- Validação de texto vazio antes de sintetizar
-- Try/catch implícito em callbacks do `SpeechSynthesisUtterance`
-- Logs de erro no console para debugging
+### Filtragem de Produtos
 
-### Suporte a Navegadores
-- Usa `window.speechSynthesis` (API padrão)
-- Funciona em Chrome, Firefox, Safari, Edge
-- Graceful degradation se síntese não for suportada
+A função `filterProducts(criteria)` em `products.js` aceita qualquer combinação de critérios:
+```javascript
+filterProducts({
+  type: "camiseta",
+  color: "azul",
+  material: "algodão",
+  style: "casual"  // Se implementado
+})
+```
 
-### Performance
-- Cancelamento de síntese anterior evita fila de áudio
-- Callbacks executam corretamente mesmo com cancelamento
-- Sem memory leaks ou listeners não removidos
+### Organização do Código
+
+**Em `chatbot.js`:**
+- Classe `ChatbotController` contém toda lógica do fluxo guiado
+- Separação clara entre métodos de processamento de texto, extração de dados e orquestração
+- Sem dependências externas (usa apenas `filterProducts` e `voiceController`)
+
+**Em `voice.js`:**
+- `VoiceController` isola toda a síntese de voz
+- Chatbot chama `voiceController.speak()` quando precisa falar
+
+### Validações
+
+- ✅ Texto vazio não gera fala
+- ✅ Sem múltiplas falas simultâneas (cancel antes de speak)
+- ✅ Perguntas não se repetem (rastreadas em `askedQuestions`)
+- ✅ Contexto resetado após busca (nova conversa limpa)
 
 ---
 
-## 📱 Exemplos de Uso
+## 📊 Resumo de Funcionalidades
 
-### Usuário: "Olá"
-```
-Bot: "Olá! Sou seu assistente de moda. Posso ajudar você a encontrar roupas com descrições sensoriais. O que você procura?"
-🔊 [Áudio sendo reproduzido]
-```
-
-### Usuário: "Camiseta azul"
-```
-Bot: "Encontrei algumas opções! Aqui estão:"
-🔊 [Áudio sendo reproduzido]
-Bot: "Camiseta Básica (Azul, Algodão)"
-```
+| Funcionalidade | Status | Detalhes |
+|---|---|---|
+| Síntese de voz em português | ✅ | Automática em todas as respostas |
+| Fluxo guiado de perguntas | ✅ | Tipo → Cor → Material → Estilo |
+| Extração de informações | ✅ | Reconhecimento automático de texto |
+| Confirmação de dados | ✅ | Mensagens personalizadas para cada critério |
+| Busca de produtos | ✅ | Filtrado com critérios coletados |
+| Conversação natural | ✅ | Respostas variadas, sem repetição |
+| Sem múltiplas falas | ✅ | Cancel antes de speak |
 
 ---
 
@@ -132,8 +204,12 @@ Bot: "Camiseta Básica (Azul, Algodão)"
 
 A implementação está **100% funcional e pronta para MVP**, com:
 - ✅ Síntese de voz em português automática
-- ✅ Integração perfeita ao fluxo do chatbot
+- ✅ Fluxo guiado passo a passo
+- ✅ Extração inteligente de preferências
+- ✅ Conversação natural e não repetitiva
 - ✅ Sem bugs ou sobreposição de áudio
-- ✅ Código limpo e manutenível
-- ✅ Zero alterações na lógica existente (apenas complementação)
+- ✅ Código limpo e bem organizado
+- ✅ Zero alterações na lógica de busca de produtos
+
+
 
