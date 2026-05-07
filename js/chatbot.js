@@ -5,6 +5,7 @@ class ChatbotController {
     this.isTyping = false;
     this.onMessageCallback = null;
     this.onTypingCallback = null;
+    this.isProcessing = false; // Controle para evitar múltiplas requisições simultâneas
 
     // Estado do usuário - armazena preferências
     this.userContext = {
@@ -78,30 +79,63 @@ class ChatbotController {
     this.onTypingCallback = callback;
   }
 
-  // Processa entrada de texto
+  // Processa entrada de texto com controle de debounce
   processTextInput(text) {
+    console.log(`📝 processTextInput chamado: "${text}"`);
+
+    // Evita múltiplas requisições simultâneas
+    if (this.isProcessing) {
+      console.log('🚫 Requisição em andamento, ignorando entrada de texto');
+      return;
+    }
+
+    console.log('✅ Iniciando processamento de texto');
+    this.isProcessing = true;
     this.addMessage('user', text);
     this.simulateTyping();
+
     setTimeout(() => {
-      this.processQuery(text);
+      console.log('⏰ Timeout expirado, chamando processQuery');
+      this.processQuery(text).finally(() => {
+        console.log('🔄 Resetando flag isProcessing');
+        this.isProcessing = false;
+      });
     }, 1000 + Math.random() * 1000); // Simula delay
   }
 
-  // Processa entrada de voz
+  // Processa entrada de voz com controle de debounce
   processVoiceInput(text) {
+    console.log(`🎤 processVoiceInput chamado: "${text}"`);
+
+    // Evita múltiplas requisições simultâneas
+    if (this.isProcessing) {
+      console.log('🚫 Requisição em andamento, ignorando entrada de voz');
+      return;
+    }
+
+    console.log('✅ Iniciando processamento de voz');
+    this.isProcessing = true;
     this.addMessage('user', text + ' (voz)');
     this.simulateTyping();
+
     setTimeout(() => {
-      this.processQuery(text);
+      console.log('⏰ Timeout de voz expirado, chamando processQuery');
+      this.processQuery(text).finally(() => {
+        console.log('🔄 Resetando flag isProcessing (voz)');
+        this.isProcessing = false;
+      });
     }, 1000 + Math.random() * 1000);
   }
 
   // Processa a consulta do usuário com fluxo guiado
-  processQuery(query) {
+  async processQuery(query) {
+    console.log(`🔍 processQuery iniciado: "${query}"`);
+
     const lowerQuery = query.toLowerCase();
 
     // Verifica se é saudação
     if (this.isGreeting(lowerQuery)) {
+      console.log('👋 Saudação detectada');
       this.respondWithGreeting();
       this.startGuidedFlow();
       return;
@@ -119,12 +153,22 @@ class ChatbotController {
       return;
     }
 
-    // Tenta extrair critérios da busca
-    const criteria = this.extractCriteria(lowerQuery);
-    if (Object.keys(criteria).length > 0) {
-      this.updateContextWithCriteria(criteria);
-      this.startGuidedFlow();
-      return;
+    // Usa Gemini para interpretar intenção se disponível
+    if (geminiController) {
+      const intent = await geminiController.interpretUserIntent(query);
+      if (intent && (intent.type || intent.color || intent.material || intent.style)) {
+        this.updateContextWithCriteria(intent);
+        this.startGuidedFlow();
+        return;
+      }
+    } else {
+      // Fallback: tenta extrair critérios localmente
+      const criteria = this.extractCriteria(lowerQuery);
+      if (Object.keys(criteria).length > 0) {
+        this.updateContextWithCriteria(criteria);
+        this.startGuidedFlow();
+        return;
+      }
     }
 
     // Não entendeu - inicia fluxo guiado

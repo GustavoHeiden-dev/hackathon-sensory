@@ -30,13 +30,40 @@ class VoiceController {
         this.updateUI();
       };
     }
+
+    this.speechQueue = [];
+    this.currentUtteranceText = null;
+    this.voices = [];
+    this.selectedVoice = null;
+
+    this.initVoices();
+  }
+
+  initVoices() {
+    const loadVoices = () => {
+      const voices = this.synth.getVoices();
+      if (!voices || voices.length === 0) {
+        return;
+      }
+      this.voices = voices;
+      this.selectedVoice = this.selectPortugueseVoice();
+    };
+
+    loadVoices();
+    if ('onvoiceschanged' in this.synth) {
+      this.synth.onvoiceschanged = loadVoices;
+    }
   }
 
   // Callback para quando receber entrada de voz
   onVoiceInput(text) {
+    console.log(`🎤 Voice input received: "${text}"`);
     // Será definido pelo chatbot
     if (this.voiceInputCallback) {
+      console.log('📞 Chamando voiceInputCallback');
       this.voiceInputCallback(text);
+    } else {
+      console.log('🚫 voiceInputCallback não definido');
     }
   }
 
@@ -63,18 +90,95 @@ class VoiceController {
 
   // Seleciona voz em português (pt-BR)
   selectPortugueseVoice() {
-    const voices = this.synth.getVoices();
-    // Tenta encontrar voz em português do Brasil
-    let selectedVoice = voices.find(voice => voice.lang.includes('pt-BR'));
-    // Se não encontrar, tenta português genérico
-    if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.lang.includes('pt'));
+    const voices = this.voices.length ? this.voices : this.synth.getVoices();
+    const languageKey = (voice) => (voice.lang || '').toLowerCase();
+    const nameKey = (voice) => (voice.name || '').toLowerCase();
+
+    const scoreVoice = (voice) => {
+      let score = 0;
+      const lang = languageKey(voice);
+      const name = nameKey(voice);
+      if (lang.includes('pt-br')) score += 10;
+      if (lang.includes('pt')) score += 5;
+      if (name.includes('google')) score += 4;
+      if (name.includes('microsoft')) score += 4;
+      if (name.includes('natural')) score += 3;
+      if (name.includes('brasil') || name.includes('brazil') || name.includes('português')) score += 2;
+      if (name.includes('female') || name.includes('feminino')) score += 2;
+      return score;
+    };
+
+    const candidates = voices.filter(voice => languageKey(voice).includes('pt'));
+    if (candidates.length > 0) {
+      candidates.sort((a, b) => scoreVoice(b) - scoreVoice(a));
+      return candidates[0];
     }
-    // Se ainda não encontrar, usa a primeira disponível
-    if (!selectedVoice && voices.length > 0) {
-      selectedVoice = voices[0];
+
+    if (voices.length > 0) {
+      return voices[0];
     }
-    return selectedVoice;
+
+    return null;
+  }
+
+  enqueueSpeech(text, callback = null) {
+    this.speechQueue.push({ text, callback });
+    if (!this.isSpeaking) {
+      this.playNextSpeech();
+    }
+  }
+
+  playNextSpeech() {
+    if (this.isSpeaking || this.speechQueue.length === 0) {
+      return;
+    }
+
+    const next = this.speechQueue.shift();
+    if (!next || !next.text) {
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(next.text);
+    utterance.lang = 'pt-BR';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    if (this.selectedVoice) {
+      utterance.voice = this.selectedVoice;
+    }
+
+    this.isSpeaking = true;
+    this.currentUtteranceText = next.text;
+    this.updateUI();
+
+    utterance.onstart = () => {
+      this.isSpeaking = true;
+      this.updateUI();
+    };
+
+    utterance.onend = () => {
+      this.isSpeaking = false;
+      this.currentUtteranceText = null;
+      this.updateUI();
+      if (typeof next.callback === 'function') {
+        next.callback();
+      }
+      setTimeout(() => this.playNextSpeech(), 100);
+    };
+
+    utterance.onerror = (event) => {
+      console.error('Erro na síntese de voz:', event.error);
+      this.isSpeaking = false;
+      this.currentUtteranceText = null;
+      this.updateUI();
+      if (typeof next.callback === 'function') {
+        next.callback();
+      }
+      setTimeout(() => this.playNextSpeech(), 100);
+    };
+
+    this.synth.speak(utterance);
   }
 
   // Fala um texto
@@ -89,47 +193,27 @@ class VoiceController {
       return;
     }
 
-    // Cancela qualquer fala anterior para evitar sobreposição
-    this.synth.cancel();
-    this.isSpeaking = false;
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'pt-BR';
-    utterance.rate = 0.95; // Velocidade ligeiramente mais lenta para clareza
-    utterance.pitch = 1.0; // Tom natural
-    utterance.volume = 1.0; // Volume máximo
-
-    // Tenta selecionar voz em português
-    const portugueseVoice = this.selectPortugueseVoice();
-    if (portugueseVoice) {
-      utterance.voice = portugueseVoice;
+    if (typeof isChatOpen === 'undefined' || !isChatOpen) {
+      console.log('🎤 Voz ignorada: chat não está aberto');
+      if (callback) callback();
+      return;
     }
 
-    utterance.onstart = () => {
-      this.isSpeaking = true;
-      this.updateUI();
-    };
-
-    utterance.onend = () => {
-      this.isSpeaking = false;
-      this.updateUI();
+    if (this.currentUtteranceText === text || this.speechQueue.some(item => item.text === text)) {
+      console.log('🔇 Mensagem duplicada ignorada:', text);
       if (callback) callback();
-    };
+      return;
+    }
 
-    utterance.onerror = (event) => {
-      console.error('Erro na síntese de voz:', event.error);
-      this.isSpeaking = false;
-      this.updateUI();
-    };
-
-    // Inicia a fala após cancelar fala anterior
-    this.synth.speak(utterance);
+    this.enqueueSpeech(text, callback);
   }
 
   // Para fala
   stopSpeaking() {
+    this.speechQueue = [];
     this.synth.cancel();
     this.isSpeaking = false;
+    this.currentUtteranceText = null;
     this.updateUI();
   }
 

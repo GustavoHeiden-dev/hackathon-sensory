@@ -1,6 +1,6 @@
 // Dados dos produtos - simulando banco de dados local
 const products = [
-  // CAMISETAS (3)
+
   {
     id: 1,
     name: "Camiseta Básica",

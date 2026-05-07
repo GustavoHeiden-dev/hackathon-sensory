@@ -1,13 +1,24 @@
 let userInteracted = false;
+let hasWelcomed = false;
+let isChatOpen = false; // Controle para voz funcionar apenas quando modal estiver aberto
 
 // Controlador principal da aplicação
 class App {
   constructor() {
+    console.log('🚀 Inicializando App...');
     this.chatbotUI = null;
     this.init();
   }
 
   init() {
+    // Inicializa Gemini com API Key
+    const geminiApiKey = 'AIzaSyDiBSWvpehMbP0ZBMd1SJEK-JcRk_zsq84';
+    if (geminiApiKey && geminiApiKey !== 'SUA_API_KEY_AQUI') {
+      initGemini(geminiApiKey);
+    } else {
+      console.warn('Gemini API Key não configurada. Usando modo local apenas.');
+    }
+
     // Verifica suporte a voz
     this.checkVoiceSupport();
 
@@ -17,11 +28,6 @@ class App {
     // Configura eventos
     this.setupEventListeners();
 
-    // Mensagem inicial sem voz automática
-    setTimeout(() => {
-      const initialMessage = 'Olá! Sou seu assistente de moda. Como posso ajudar você hoje?';
-      chatbotController.addMessage('bot', initialMessage);
-    }, 500);
   }
 
   // Verifica suporte a voz
@@ -106,6 +112,14 @@ class App {
       });
     }
 
+    // Botão 'Falar com assistente' no hero
+    const openChatButtonHero = document.getElementById('openChatButtonHero');
+    if (openChatButtonHero) {
+      openChatButtonHero.addEventListener('click', () => {
+        this.openChatWidget();
+      });
+    }
+
     // Botão de fechar chat
     const closeChatButton = document.getElementById('closeChatButton');
     if (closeChatButton) {
@@ -142,6 +156,7 @@ class App {
     if (!chatWidget || !chatOverlay) return;
 
     userInteracted = true;
+    isChatOpen = true; // Ativar voz quando modal abrir
     chatWidget.classList.add('active');
     chatOverlay.classList.add('active');
     chatWidget.setAttribute('aria-hidden', 'false');
@@ -149,12 +164,25 @@ class App {
     if (messageInput) {
       messageInput.focus();
     }
+
+    if (!hasWelcomed) {
+      const welcomeMessage = 'Olá! Sou seu assistente de moda. Como posso ajudar você hoje?';
+      chatbotController.addMessage('bot', welcomeMessage);
+      setTimeout(() => {
+        voiceController.speak(welcomeMessage, () => {
+          hasWelcomed = true;
+        });
+      }, 400);
+    }
   }
 
   closeChatWidget() {
     const chatWidget = document.getElementById('chatWidget');
     const chatOverlay = document.getElementById('chatOverlay');
     if (!chatWidget || !chatOverlay) return;
+
+    isChatOpen = false; // Desativar voz quando modal fechar
+    voiceController.stopSpeaking();
 
     chatWidget.classList.remove('active');
     chatOverlay.classList.remove('active');
@@ -282,18 +310,20 @@ voiceController.updateUI = function() {
   if (!voiceButton) return;
 
   if (this.isListening) {
-    voiceButton.textContent = '🎤 Ouvindo...';
+    voiceButton.innerHTML = '<i class="fas fa-microphone"></i> Ouvindo...';
     voiceButton.classList.add('listening');
-  } else {
-    voiceButton.textContent = '🎤 Falar';
+    voiceButton.classList.remove('speaking');
+  } else if (this.isSpeaking) {
+    voiceButton.innerHTML = '<i class="fas fa-volume-high"></i> Falando...';
+    voiceButton.classList.add('speaking');
     voiceButton.classList.remove('listening');
+  } else {
+    voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+    voiceButton.classList.remove('listening');
+    voiceButton.classList.remove('speaking');
   }
 
-  if (this.isSpeaking) {
-    voiceButton.disabled = true;
-  } else {
-    voiceButton.disabled = false;
-  }
+  voiceButton.disabled = this.isSpeaking;
 };
 
 // Inicializa aplicação quando DOM está pronto
