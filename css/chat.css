@@ -82,6 +82,14 @@
   justify-content: center;
   font-size: 1rem;
   color: #6b7280;
+  overflow: hidden;
+}
+
+.chat-avatar-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
 }
 
 .chat-title {
@@ -336,6 +344,15 @@
   transform: translateY(0);
 }
 
+.chat-send:focus-visible,
+.voice-button:focus-visible,
+.btn-chat-clear:focus-visible,
+.chat-close:focus-visible,
+.product-card-preview-action:focus-visible {
+  outline: 3px solid rgba(17, 24, 39, 0.35);
+  outline-offset: 2px;
+}
+
 .chat-send:disabled {
   background: #9ca3af;
   border-color: #9ca3af;
@@ -457,6 +474,78 @@
 .product-suggestion:hover {
   background: #e5e7eb;
   border-color: #d1d5db;
+}
+
+.product-card-preview {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.product-card-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.product-card-preview-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.product-card-preview-category {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.product-card-preview-name {
+  margin: 0;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.product-card-preview-description {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.product-card-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.product-card-preview-action {
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  background: #1a1a1a;
+  color: #ffffff;
+  font-size: 0.82rem;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.product-card-preview-action.secondary {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.product-card-preview-action:hover {
+  transform: translateY(-1px);
 }
 
 /* Responsive Design */

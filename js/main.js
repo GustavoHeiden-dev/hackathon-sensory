@@ -258,6 +258,36 @@ class ChatbotUI {
 
     messageElement.appendChild(textElement);
 
+    // Se a mensagem contiver dados do produto, renderiza preview visual dentro do chat
+    if (message.data && message.data.product) {
+      const product = message.data.product;
+      const productCard = document.createElement('div');
+      productCard.className = 'product-card-preview';
+
+      productCard.innerHTML = `
+        <img src="${product.image}" alt="${product.name}" class="product-card-preview-image" />
+        <div class="product-card-preview-content">
+          <div class="product-card-preview-category">${product.type ? product.type.toUpperCase() : 'PRODUTO'}</div>
+          <h3 class="product-card-preview-name">${product.name}</h3>
+          <p class="product-card-preview-description">${product.color ? product.color.charAt(0).toUpperCase() + product.color.slice(1) + ' - ' : ''}${product.material || ''}${product.style ? ' • ' + product.style : ''}</p>
+          <div class="product-card-preview-actions">
+            <button type="button" class="product-card-preview-action" aria-label="Ver produto ${product.name}" onclick="window.location.href='product.html?id=${product.id}'">Ver produto</button>
+            <button type="button" class="product-card-preview-action secondary" aria-label="Adicionar ${product.name} ao carrinho">Comprar</button>
+          </div>
+        </div>
+      `;
+
+      const buyButton = productCard.querySelector('.product-card-preview-action.secondary');
+      if (buyButton) {
+        buyButton.addEventListener('click', () => {
+          chatbotController.addMessage('bot', 'Produto adicionado ao carrinho.');
+          voiceController.speak('Produto adicionado ao carrinho.');
+        });
+      }
+
+      messageElement.appendChild(productCard);
+    }
+
     // Se for produto, adiciona botão para ouvir descrição
     if (message.data && message.data.productId) {
       const listenButton = document.createElement('button');

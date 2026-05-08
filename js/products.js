@@ -3,13 +3,13 @@ const products = [
 
   {
     id: 1,
-    name: "Camiseta Básica",
+    name: "Camiseta Branca de Algodão",
     type: "camiseta",
     color: "branca",
     material: "algodão",
     style: "casual",
     image: "assets/imagens/camiseta-branca.jpg",
-    sensoryDescription: "Uma camiseta leve e confortável, feita de algodão puro. A textura é macia e respirável, perfeita para o dia a dia."
+    sensoryDescription: "Uma camiseta branca leve e confortável, feita de algodão puro. A textura é macia e respirável, perfeita para o dia a dia."
   },
   {
     id: 2,

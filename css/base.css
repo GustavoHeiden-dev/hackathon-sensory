@@ -148,3 +148,29 @@ img {
 .mb-12 {
   margin-bottom: 3rem;
 }
+
+/* Logo Styles */
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.logo-image {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.logo-image:hover {
+  transform: scale(1.05);
+}
+
+.chat-toggle-logo {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  padding: 8px;
+}

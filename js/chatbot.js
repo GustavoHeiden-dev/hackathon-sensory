@@ -19,6 +19,10 @@ class ChatbotController {
     this.isInGuidedFlow = false;
     this.askedQuestions = new Set(); // Rastreia quais perguntas já foram feitas
 
+    // Inicializa o fluxo conversacional
+    this.conversationFlow = new ConversationFlow(this);
+    this.inProductFlow = false; // Controla se estamos no fluxo de produto
+
     // Respostas simuladas simples
     this.responses = {
       saudacao: [
@@ -83,6 +87,15 @@ class ChatbotController {
   processTextInput(text) {
     console.log(`📝 processTextInput chamado: "${text}"`);
 
+    // Se estamos no fluxo de produto, processar através do conversationFlow
+    if (this.inProductFlow) {
+      const handled = this.conversationFlow.processUserInput(text);
+      if (handled) {
+        this.addMessage('user', text);
+        return;
+      }
+    }
+
     // Evita múltiplas requisições simultâneas
     if (this.isProcessing) {
       console.log('🚫 Requisição em andamento, ignorando entrada de texto');
@@ -106,6 +119,15 @@ class ChatbotController {
   // Processa entrada de voz com controle de debounce
   processVoiceInput(text) {
     console.log(`🎤 processVoiceInput chamado: "${text}"`);
+
+    // Se estamos no fluxo de produto, processar através do conversationFlow
+    if (this.inProductFlow) {
+      const handled = this.conversationFlow.processUserInput(text);
+      if (handled) {
+        this.addMessage('user', text + ' (voz)');
+        return;
+      }
+    }
 
     // Evita múltiplas requisições simultâneas
     if (this.isProcessing) {
@@ -398,26 +420,11 @@ class ChatbotController {
       return;
     }
 
-    // Mensagem inicial de resultados
-    const foundMsg = this.getRandomResponse('encontrou');
-    this.addMessage('bot', foundMsg);
-    voiceController.speak(foundMsg);
+    // Ativa o fluxo de produto
+    this.inProductFlow = true;
 
-    // Exibe cada produto com imagem
-    products.forEach(product => {
-      // Cria HTML para o produto com imagem
-      const productHtml = `
-        <div class="product-card" style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
-          <img src="${product.image}" alt="${product.name}" style="max-width: 150px; height: auto; border-radius: 4px; margin-bottom: 8px;" onerror="this.style.display='none'">
-          <div style="font-weight: bold; margin-bottom: 4px;">${product.name}</div>
-          <div style="color: #666; font-size: 14px;">${product.color} • ${product.material} • ${product.style}</div>
-          <div style="color: #888; font-size: 12px; margin-top: 4px; font-style: italic;">${product.sensoryDescription}</div>
-        </div>
-      `;
-
-      // Adiciona como mensagem especial do bot
-      this.addMessage('bot', productHtml, { productId: product.id, isHtml: true });
-    });
+    // Inicia o fluxo conversacional com o primeiro produto
+    this.conversationFlow.startProductSuggestion(products[0]);
   }
 
   // Busca produtos e responde
@@ -447,8 +454,21 @@ class ChatbotController {
     voiceController.speak(response);
   }
 
-  // Adiciona mensagem
-  addMessage(sender, text, data = null) {
+  // Adiciona mensagem com suporte para parâmetros em qualquer ordem
+  addMessage(senderOrText, textOrSender, data = null) {
+    let sender = senderOrText;
+    let text = textOrSender;
+
+    if (typeof senderOrText === 'string' && typeof textOrSender === 'string') {
+      const firstIsRole = senderOrText === 'bot' || senderOrText === 'user';
+      const secondIsRole = textOrSender === 'bot' || textOrSender === 'user';
+
+      if (!firstIsRole && secondIsRole) {
+        sender = textOrSender;
+        text = senderOrText;
+      }
+    }
+
     const message = {
       id: Date.now(),
       sender: sender, // 'user' ou 'bot'
@@ -477,6 +497,13 @@ class ChatbotController {
         this.onTypingCallback(false);
       }
     }, 1500);
+  }
+
+  // Fala uma mensagem através do voice controller
+  speakMessage(message) {
+    if (voiceController) {
+      voiceController.speak(message);
+    }
   }
 
   // Obtém resposta aleatória

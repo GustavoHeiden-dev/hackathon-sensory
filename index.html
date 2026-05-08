@@ -19,7 +19,9 @@
   <!-- Header Moderno -->
   <header class="main-header">
     <div class="header-content">
-      <div class="logo">Sensory UX</div>
+      <div class="logo">
+        <img src="assets/imagens/logo.png" alt="Sensory UX Logo" class="logo-image">
+      </div>
 
       <nav class="nav-menu">
         <a href="#masculino" class="nav-link">Masculino</a>
@@ -49,12 +51,12 @@
             </p>
             <div class="hero-actions">
               <button class="btn btn-primary btn-large" onclick="document.querySelector('.products-section').scrollIntoView({behavior: 'smooth'})">Explorar coleção</button>
-              <button id="openChatButtonHero" class="btn btn-secondary btn-large">Falar com assistente</button>
+              <button id="openChatButtonHero" class="btn btn-secondary btn-large" aria-label="Abrir assistente de moda">Falar com assistente</button>
             </div>
           </div>
           <div class="hero-image">
             <div class="hero-image-wrapper">
-              <img src="assets/imagens/hero-fashion.svg" alt="Moda sensorial moderna" class="hero-image" />
+              <img src="assets/imagens/logo.png" alt="Moda sensorial moderna" class="hero-image" />
             </div>
           </div>
         </div>
@@ -126,7 +128,7 @@
   </footer>
 
   <button id="chatToggleButton" class="chat-toggle" aria-label="Abrir assistente de chat">
-    <span>💬</span>
+    <img src="assets/imagens/logo.png" alt="Chat" class="chat-toggle-logo">
   </button>
 
   <div id="chatOverlay" class="chat-overlay" aria-hidden="true"></div>
@@ -135,7 +137,9 @@
     <div class="chatbot-container">
       <div class="chat-header">
         <div class="chat-header-content">
-          <div class="chat-avatar">🤖</div>
+          <div class="chat-avatar">
+            <img src="assets/imagens/logo.png" alt="Assistente" class="chat-avatar-logo">
+          </div>
           <div>
             <h2 class="chat-title">Assistente</h2>
             <p class="chat-subtitle">Como posso ajudar?</p>
@@ -144,7 +148,7 @@
         <button id="closeChatButton" class="chat-close" aria-label="Fechar chat">×</button>
       </div>
 
-      <div class="chat-messages" id="messagesContainer">
+<div class="chat-messages" id="messagesContainer" aria-live="polite" aria-atomic="true" role="log">
         <!-- Mensagens aparecerão aqui -->
       </div>
 
@@ -155,7 +159,7 @@
       <div class="chat-input-area">
         <div class="chat-input-row">
           <div class="chat-input-wrapper">
-            <textarea id="messageInput" class="chat-input" placeholder="Digite sua mensagem..." rows="1"></textarea>
+            <textarea id="messageInput" class="chat-input" placeholder="Digite sua mensagem..." aria-label="Digite sua mensagem" rows="1"></textarea>
           </div>
           <div class="chat-action-buttons">
             <button id="voiceButton" class="voice-button" aria-label="Falar" title="Falar">
@@ -181,6 +185,7 @@
   <script src="js/products.js"></script>
   <script src="js/voice.js"></script>
   <script src="js/gemini.js"></script>
+  <script src="js/conversationFlow.js"></script>
   <script src="js/chatbot.js"></script>
   <script src="js/main.js"></script>
 

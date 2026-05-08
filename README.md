@@ -1,112 +1,157 @@
-Corrija o sistema de voz do chatbot para evitar falas sobrepostas e melhorar a naturalidade da voz.
+Melhore o fluxo de acessibilidade do chatbot e refine a página de produto para manter consistência visual premium e acessível.
+
+========================
+PROBLEMA 1 — OPÇÕES NÃO ESTÃO SENDO FALADAS
+========================
 
 Problema atual:
-Às vezes o chatbot envia duas respostas rapidamente.
-Quando isso acontece:
-- a segunda fala interrompe a primeira
-- o áudio fica cortado
-- experiência parece bugada
+Quando o usuário escolhe NÃO ouvir a descrição da roupa:
+- o chatbot mostra opções semelhantes na tela
+- MAS não fala essas opções por voz
 
-Além disso, a voz atual parece muito robótica.
+Isso prejudica completamente a experiência para usuários cegos.
 
 Objetivo:
-Melhorar controle de speech synthesis e deixar a experiência mais natural e fluida.
-
-Tarefas:
+Sempre que o chatbot mostrar novas opções de roupas:
+- ele deve também ler essas opções em voz alta
 
 ========================
-1. EVITAR FALAS SOBREPOSTAS
+COMPORTAMENTO ESPERADO
 ========================
-
-Criar sistema de fila de voz.
-
-Objetivo:
-- uma fala terminar antes da próxima começar
-
-Implementação:
-- criar array/queue de mensagens
-- adicionar novas falas na fila
-- só executar próxima após onend da atual
 
 Exemplo:
-speechQueue.push(text)
 
-Quando terminar:
-- executar próxima da fila
+"Encontrei outras opções semelhantes para você:
 
-========================
-2. NÃO INTERROMPER FALAS
-========================
+1. Camiseta branca oversized
+2. Camiseta branca básica premium
+3. Camiseta casual de algodão slim
 
-REMOVER comportamento atual:
-speechSynthesis.cancel()
+Você pode falar ou digitar qual opção deseja."
 
-Ele só deve ser usado:
-- quando fechar o modal/chat
-- quando usuário parar manualmente
-
-NÃO cancelar automaticamente ao chegar nova mensagem.
+Essa mensagem inteira deve:
+- aparecer no chat
+- ser falada pelo speech synthesis
 
 ========================
-3. MELHORAR QUALIDADE DA VOZ
+IMPLEMENTAÇÃO
 ========================
 
-Selecionar voz mais natural disponível no navegador.
+1. Verificar fluxo:
+showSimilarProducts()
 
-Preferir:
-- Google português Brasil
-- Microsoft natural voices
-- pt-BR feminino natural
+2. Garantir:
+- mensagens das opções sejam adicionadas no chat
+- speak() seja chamado também
 
-Exemplo:
-speechSynthesis.getVoices()
+3. Criar texto concatenado com:
+- nomes dos produtos
+- numeração
+- instrução final
 
-Selecionar automaticamente:
-- pt-BR
-- voz mais humana disponível
+4. NÃO mostrar opções apenas visualmente.
 
 ========================
-4. AJUSTAR CONFIGURAÇÕES DA VOZ
+PROBLEMA 2 — ACESSIBILIDADE TALKBACK
 ========================
-
-Melhorar:
-- rate
-- pitch
-- volume
-
-Sugestão:
-- rate: 1
-- pitch: 1
-- volume: 1
 
 Objetivo:
-fala mais natural e confortável.
+Garantir que TODOS botões e elementos importantes sejam identificáveis por leitores de tela.
 
 ========================
-5. EVITAR DUPLICAÇÃO
+IMPLEMENTAÇÃO
 ========================
 
-Garantir:
-- mesma mensagem não seja falada duas vezes
-- evitar múltiplas chamadas simultâneas
+Adicionar aria-label em:
+
+- botão flutuante do chatbot
+- botão fechar chat
+- botão enviar mensagem
+- botão microfone
+- botão limpar conversa
+- botões de compra
+- botões de carrinho
+- inputs
+- botões de seleção de produtos
 
 ========================
-6. MELHORAR EXPERIÊNCIA
+EXEMPLOS
 ========================
 
-Quando bot estiver falando:
-- mostrar indicador visual discreto
-- ex: animação leve ou "falando..."
+<button aria-label="Abrir assistente de moda acessível">
+
+<button aria-label="Enviar mensagem">
+
+<button aria-label="Ativar reconhecimento de voz">
 
 ========================
-7. IMPORTANTE
+TAMBÉM GARANTIR
+========================
+
+1. Navegação correta por teclado
+2. Focus visível
+3. Ordem semântica correta
+4. TalkBack lendo botões corretamente
+
+========================
+PROBLEMA 3 — MELHORAR VISUAL DO PRODUCT.HTML
+========================
+
+Objetivo:
+A página do produto deve combinar com o restante do site:
+- minimalista
+- clean
+- fashion
+- elegante
+
+========================
+REMOVER
+========================
+
+- aparência simples demais
+- blocos pesados
+- excesso de cores
+- aparência de sistema
+
+========================
+ADICIONAR
+========================
+
+1. Layout mais sofisticado:
+- imagem grande do produto
+- descrição elegante
+- muito espaço em branco
+- tipografia premium
+
+2. Paleta minimalista:
+- branco/off-white
+- preto suave
+- cinza claro
+- sem azul forte
+
+3. Melhorar botões:
+- adicionar ao carrinho
+- finalizar compra
+
+Com:
+- hover suave
+- bordas elegantes
+- animações discretas
+
+4. Melhorar responsividade mobile.
+
+5. Melhorar tipografia:
+- usar Inter/Poppins/Manrope
+
+========================
+IMPORTANTE
 ========================
 
 NÃO quebrar:
-- chatbot atual
-- modal
-- speech synthesis
-- mensagens
+- chatbot
+- voz
+- fluxo atual
+- renderização dos produtos
 
 Objetivo final:
-O chatbot deve falar de forma contínua, organizada e mais humana, sem cortar frases ao receber novas respostas.
+O projeto deve parecer um e-commerce premium acessível de verdade, funcionando corretamente para usuários cegos com TalkBack e experiência por voz completa.
